@@ -23,7 +23,10 @@ WORKDIR /app
 # ---- Full dependency install (cached on lockfile) ----
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+# No BuildKit cache mount here: Railway's Metal builder rejects a cache-mount `id`
+# without its own cacheKey prefix, and a Railway-specific id would break plain
+# `docker build` and CI. A plain install keeps the Dockerfile portable everywhere.
+RUN pnpm install --frozen-lockfile
 
 # ---- Build the ESM bundle ----
 FROM deps AS build
@@ -34,7 +37,7 @@ RUN pnpm build
 # ---- Production-only dependencies for the runtime layer ----
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod
 
 # ---- Runtime: slim, non-root ----
 FROM node:22-bookworm-slim AS runtime
