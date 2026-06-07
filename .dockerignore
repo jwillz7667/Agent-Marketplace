@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.git
+.env
+*.log
+.DS_Store
+**/*.test.ts
+test
+docs
+*.md

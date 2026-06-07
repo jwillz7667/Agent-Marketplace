@@ -1,0 +1,34 @@
+# Railway config-as-code for the Praxis backend.
+# Railway reads this at deploy time; values here override the service's dashboard
+# settings. Reference: https://docs.railway.com/reference/config-as-code
+#
+# SINGLE-INSTANCE CONSTRAINT (load-bearing — do not relax casually):
+#   The default PERSISTENCE=memory keeps the hash-chained Receipt Ledger, wallet
+#   balances, and the nonce-replay + idempotency stores in process memory. Therefore:
+#     * numReplicas = 1        — a 2nd replica would fork the ledger and break
+#                                replay/idempotency dedupe across instances.
+#     * sleepApplication=false — a cold start (App Sleeping / scale-to-zero) would
+#                                wipe all state and stop scheduled/push delivery.
+#   Lift both ONLY after the Prisma/Postgres adapter is wired (prisma/schema.prisma,
+#   docs/adr/0005) and the nonce/idempotency stores are externalized to the DB.
+#
+# Secrets are NOT defined here — Railway variables are set in the dashboard / CLI,
+# never committed. Set at minimum:
+#     GOV_API_KEY   (required — boot fails fast without it)
+#     PERSISTENCE   (defaults to "memory"; set "prisma" + DATABASE_URL once wired)
+#   PORT is injected by Railway and read by the server (falls back to 8080).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+# The Dockerfile's final stage is `runtime`, so no explicit build target is needed.
+
+[deploy]
+# Start command comes from the image CMD (`node dist/server.js`); the server binds
+# 0.0.0.0 and reads $PORT, so no startCommand override is required here.
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+numReplicas = 1
+sleepApplication = false
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

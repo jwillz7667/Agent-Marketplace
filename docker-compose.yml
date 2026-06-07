@@ -1,0 +1,62 @@
+# Praxis backend — local/container orchestration.
+#
+#   docker compose up --build
+#       Runs the backend with the self-contained in-memory persistence (default).
+#       GOV_API_KEY must be set in the environment or a .env file.
+#
+#   PERSISTENCE=prisma docker compose --profile prisma up --build
+#       Also starts Postgres (the forward-looking production persistence target,
+#       see prisma/schema.prisma and ADR-0005). Set DATABASE_URL to point at `db`.
+#
+# Secrets come from the environment / a .env file — never committed. The `:?` guard
+# fails the compose run fast if GOV_API_KEY is missing, matching the boot-time
+# config validation.
+
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    image: praxis:latest
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      PERSISTENCE: ${PERSISTENCE:-memory}
+      # Only consulted when PERSISTENCE=prisma; points at the `db` service below.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://praxis:praxis@db:5432/praxis}
+      GOV_API_KEY: ${GOV_API_KEY:?set GOV_API_KEY in your environment or .env}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SIGNATURE_SKEW_MS: ${SIGNATURE_SKEW_MS:-2000}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # Postgres for the Prisma persistence target. Started only with `--profile prisma`;
+  # the default memory runtime ignores it entirely.
+  db:
+    image: postgres:16-alpine
+    profiles: ["prisma"]
+    environment:
+      POSTGRES_USER: praxis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-praxis}
+      POSTGRES_DB: praxis
+    volumes:
+      - praxis-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U praxis -d praxis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  praxis-pgdata:
