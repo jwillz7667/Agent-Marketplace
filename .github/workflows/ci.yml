@@ -24,7 +24,7 @@ jobs:
 
       # pnpm must be on PATH before setup-node so its pnpm store cache can resolve.
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11.5.1
 
