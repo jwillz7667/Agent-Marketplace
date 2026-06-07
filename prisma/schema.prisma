@@ -1,0 +1,310 @@
+// Praxis production data model (PostgreSQL).
+//
+// The default runtime uses in-memory adapters (PERSISTENCE=memory) so the service
+// boots and tests without a database. This schema is the production target: the
+// in-memory repositories in each feature map 1:1 onto these tables behind the same
+// repo interfaces. Every column used in a WHERE / ORDER BY / JOIN is indexed.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Passport {
+  did           String   @id
+  controller    String
+  keys          Json
+  services      Json
+  delegationRef String?
+  kycLevel      String
+  sig           String
+  createdAt     DateTime @default(now())
+
+  @@index([controller])
+}
+
+model Delegation {
+  subject    String   @id // agent DID
+  issuer     String
+  policy     Json
+  issued     DateTime
+  expires    DateTime
+  revocation String
+  sig        String
+  revoked    Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  @@index([issuer])
+  @@index([revoked])
+}
+
+model Listing {
+  listingId  String   @id
+  provider   String
+  taxonomy   String
+  version    String
+  status     String
+  price      String
+  currency   String
+  body       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([provider])
+  @@index([taxonomy])
+  @@index([status])
+  @@index([taxonomy, status])
+}
+
+model Quote {
+  quoteId        String   @id
+  listingId      String
+  listingVersion String
+  requester      String
+  rail           String
+  amount         String
+  currency       String
+  issued         DateTime
+  expires        DateTime
+  bound          Boolean  @default(false)
+  sig            String
+
+  @@index([listingId])
+  @@index([requester])
+  @@index([expires])
+}
+
+model Receipt {
+  receiptId      String   @id
+  quoteId        String?
+  listingId      String?
+  listingVersion String?
+  jobRef         String?
+  payer          String
+  payee          String
+  amount         String
+  currency       String
+  rail           String
+  resultHash     String
+  latencyMs      Int
+  outcome        String
+  settledAt      DateTime
+  facilitatorSig String
+  payeeSig       String
+
+  @@index([payer])
+  @@index([payee])
+  @@index([listingId])
+  @@index([settledAt])
+}
+
+model LedgerEntry {
+  seq      Int      @id
+  prevHash String
+  hash     String   @unique
+  ts       DateTime
+  kind     String
+  subject  String?
+  payload  Json
+
+  @@index([kind])
+  @@index([subject])
+  @@index([ts])
+}
+
+model Message {
+  msgId     String   @id
+  threadId  String
+  inReplyTo String?
+  sender    String
+  recipient String
+  type      String
+  body      Json
+  refs      Json?
+  postageId String?
+  iat       DateTime
+  exp       DateTime
+  sig       String
+  cursor    Int      @default(autoincrement())
+
+  @@index([recipient, cursor])
+  @@index([threadId])
+  @@index([sender])
+}
+
+model Thread {
+  threadId    String   @id
+  state       String
+  participants String[]
+  updatedAt   DateTime @updatedAt
+
+  @@index([state])
+}
+
+model Post {
+  postId    String   @id
+  seq       Int      @unique
+  prevHash  String
+  postHash  String
+  author    String
+  type      String
+  capability String?
+  region    String?
+  body      Json
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([author])
+  @@index([capability])
+  @@index([seq])
+}
+
+model Subscription {
+  subscriptionId String   @id
+  subscriber     String
+  topics         Json
+  webhookUrl     String?
+  cursor         Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([subscriber])
+}
+
+model Escrow {
+  escrowId       String   @id
+  jobRef         String
+  payer          String
+  payee          String
+  amount         String
+  currency       String
+  state          String
+  onTimeout      String
+  deliverBy      DateTime
+  disputeWindowMs Int
+  stakeHoldId    String?
+  payerHoldId    String?
+  body           Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([payer])
+  @@index([payee])
+  @@index([state])
+}
+
+model Milestone {
+  id         String  @id @default(uuid())
+  escrowId   String
+  milestoneId String
+  amount     String
+  state      String
+  resultHash String?
+  acceptance Json
+
+  @@unique([escrowId, milestoneId])
+  @@index([escrowId])
+}
+
+model Wallet {
+  did       String   @id
+  createdAt DateTime @default(now())
+}
+
+model Balance {
+  id        String @id @default(uuid())
+  did       String
+  currency  String
+  available String
+  held      String
+
+  @@unique([did, currency])
+  @@index([did])
+}
+
+model Hold {
+  holdId    String   @id
+  did       String
+  amount    String
+  currency  String
+  ref       String
+  state     String // active | released | captured | forfeited
+  createdAt DateTime @default(now())
+
+  @@index([did])
+  @@index([state])
+}
+
+model Stake {
+  stakeId   String   @id
+  did       String
+  amount    String
+  currency  String
+  state     String // bonded | unbonded | slashed
+  ref       String?
+  createdAt DateTime @default(now())
+
+  @@index([did])
+  @@index([state])
+}
+
+model ReputationSnapshotRow {
+  snapshotId String   @id
+  subject    String
+  window     String
+  trust      Float
+  metrics    Json
+  issued     DateTime
+  expires    DateTime
+  issuer     String
+  sig        String
+
+  @@index([subject])
+  @@index([issued])
+}
+
+model ReputationMetricsRow {
+  subject    String   @id
+  metrics    Json
+  updatedAt  DateTime @updatedAt
+}
+
+model Approval {
+  approvalId String   @id
+  agent      String
+  action     Json
+  payload    Json
+  status     String // pending | approved | denied
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@index([agent])
+  @@index([status])
+}
+
+model NonceRecord {
+  nonce String   @id
+  exp   DateTime
+
+  @@index([exp])
+}
+
+model IdempotencyRecord {
+  id       String @id // scope::key
+  status   String
+  response Json?
+
+  @@index([status])
+}
+
+model Webhook {
+  webhookId String   @id
+  owner     String
+  url       String
+  createdAt DateTime @default(now())
+
+  @@index([owner])
+}
