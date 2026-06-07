@@ -1,0 +1,15 @@
+# Normalize line endings to LF on checkin; let Git auto-detect text files.
+* text=auto eol=lf
+
+# Generated / vendored files — collapse in diffs and exclude from language stats.
+pnpm-lock.yaml linguist-generated=true
+*.snap        linguist-generated=true
+
+# The spec is documentation, not the language the repo is "written in".
+outline.md    linguist-documentation=true
+
+# Treat these as binary so Git never mangles them.
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ico  binary

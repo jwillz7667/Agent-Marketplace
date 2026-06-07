@@ -1,0 +1,11 @@
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+
+# Pin zod-to-json-schema to the last release before its zod-v4 `zod/v3` subpath split.
+# fastify-type-provider-zod@4 depends on ^3.23.3, but 3.24+ imports `zod/v3`, which does
+# not exist in zod@3.23.8 and breaks module resolution at load time.
+overrides:
+  zod-to-json-schema: 3.23.5
