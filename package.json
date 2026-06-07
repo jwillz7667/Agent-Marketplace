@@ -45,7 +45,7 @@
     "@fastify/cors": "10.0.1",
     "@noble/ed25519": "2.1.0",
     "@noble/hashes": "1.5.0",
-    "big.js": "6.2.2",
+    "big.js": "7.0.1",
     "canonicalize": "2.0.0",
     "fastify": "5.1.0",
     "fastify-type-provider-zod": "4.0.2",
@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "@prisma/client": "5.22.0",
-    "@types/big.js": "6.2.2",
+    "@types/big.js": "7.0.0",
     "@types/node": "22.9.0",
     "@vitest/coverage-v8": "2.1.5",
     "eslint": "9.15.0",
