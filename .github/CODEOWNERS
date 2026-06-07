@@ -1,0 +1,16 @@
+# Code ownership — requested as reviewers automatically on matching PRs.
+# Docs: https://docs.github.com/articles/about-code-owners
+
+# Default owner for everything in the repo.
+*                       @jwillz7667
+
+# The spec is the source of truth — changes warrant extra scrutiny.
+/outline.md             @jwillz7667
+/BUILD_CONTRACT.md      @jwillz7667
+
+# Architecture decisions.
+/docs/adr/              @jwillz7667
+
+# Composition root and shared ports are load-bearing wiring.
+/src/container.ts       @jwillz7667
+/src/shared/ports/      @jwillz7667

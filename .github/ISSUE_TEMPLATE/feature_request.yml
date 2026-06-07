@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a change or addition to the protocol or its implementation
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `outline.md` is the source of truth. Protocol changes should reference or
+        propose an amendment to a numbered section.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't be done today, or what's awkward? Who is the agent/actor affected?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should change? New endpoint, schema field, behavior? Keep it spec-shaped.
+    validations:
+      required: true
+  - type: input
+    id: spec-section
+    attributes:
+      label: Spec section
+      description: Section this affects or extends (e.g. "outline.md §2.3 ranking").
+  - type: textarea
+    id: invariants
+    attributes:
+      label: Invariant impact
+      description: Does this touch a load-bearing invariant (signing, idempotency, below-agent enforcement, measured reputation, append-only board, rail separation)? How is it kept safe?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

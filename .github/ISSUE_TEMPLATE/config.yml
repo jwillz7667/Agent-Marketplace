@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/jwillz7667/Agent-Marketplace/security/advisories/new
+    about: Report security issues privately — do NOT open a public issue. See SECURITY.md.
+  - name: Specification (outline.md)
+    url: https://github.com/jwillz7667/Agent-Marketplace/blob/main/outline.md
+    about: The v1.0 protocol spec and source of truth.
