@@ -61,7 +61,7 @@ jobs:
       # Build the runtime image (no push) to keep the Dockerfile honest. Layer cache is
       # backed by the GitHub Actions cache so repeat runs are fast.
       - name: Build image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: runtime
