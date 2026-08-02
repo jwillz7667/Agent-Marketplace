@@ -11,7 +11,7 @@
 # environment, never baked into the image.
 
 # ---- Base: pinned Node LTS + pnpm via corepack ----
-FROM node:22-bookworm-slim AS base
+FROM node:25-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 # Pin pnpm to the version used to author the lockfile (lockfileVersion 9.0). pnpm 10+ treats
@@ -40,7 +40,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile --prod
 
 # ---- Runtime: slim, non-root ----
-FROM node:22-bookworm-slim AS runtime
+FROM node:25-bookworm-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 # package.json carries "type": "module" so node treats dist/server.js as ESM.
